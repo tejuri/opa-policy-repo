@@ -9,6 +9,15 @@
                 "ip": "8.8.8.8"
             }
         },
+        "gsonkar": {
+            "roles": [
+                "admin"
+            ],
+            "location": {
+                "country": "IND",
+                "ip": "8.8.8.8"
+            }
+        },
         "bob": {
             "roles": [
                 "employee",
