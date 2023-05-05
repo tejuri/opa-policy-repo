@@ -11,7 +11,7 @@
         },
         "gsonkar": {
             "roles": [
-                "admin"
+                "billing"
             ],
             "location": {
                 "country": "IND",
