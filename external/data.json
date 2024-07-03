@@ -76,5 +76,43 @@
                 "type": "finance"
             }
         ]
+    },
+    "ldap": {
+        "aakash1": {
+            "c": "IN"
+        },
+        "asiddha2": {
+            "c": "IN"
+        },
+        "sjohn790": {
+            "c": "US"
+        },
+        "laksh20": {
+            "c": "IN"
+        },
+        "vchillar": {
+            "c": "IN"
+        },
+        "gsonkar": {
+            "c": "IN"
+        },
+        "sali40": {
+            "c": "IN"
+        },
+        "pkorraku": {
+            "c": "IN"
+        },
+        "mginjupa": {
+            "c": "US"
+        },
+        "svelagap": {
+            "c": "IN"
+        },
+        "vpettug1": {
+            "c": "IN"
+        },
+        "sislam36": {
+            "c": "US"
+        }
     }
 }
