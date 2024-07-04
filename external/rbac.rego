@@ -1,24 +1,24 @@
 package com.optum.eimp.patients
 
-import future.keywords.in
 import future.keywords.if
+import future.keywords.in
 
 default deny = false
 
-authorization = result {
+authorization = result if {
 	result := {
 		"deny": deny,
-		"enforcement": enforcement
+		"enforcement": enforcement,
 	}
 }
 
-deny {
+deny if {
 	input.resource.type = "Patients"
 	has_required_role_permission
 	is_offshore
 }
 
-claims := payload {
+claims := payload if {
 	[_, payload, _] := io.jwt.decode(input.jwt)
 }
 
@@ -37,17 +37,10 @@ rowFilter[enforcement] {
 	enforcement := restricted_policy_ids
 }
 
-rowFilter[enforcement] {
-	deny
-	allowed_roles := {"EIMP_UI_UHG_IMDM_READONLY_PROD"}
-	count(allowed_roles & user_roles_set) != 0
-	enforcement := restricted_policy_ids
-}
-
 columnMasking[enforcement] {
 	deny
 
-	# 	not contains(grants, "viewphi")
+	#     not contains(grants, "viewphi")
 	enforcement := "NO_PHI"
 }
 
@@ -55,18 +48,18 @@ user_roles_set := {x |
 	x := claims.role[_]
 }
 
-has_required_role_permission {
+has_required_role_permission if {
 	# Check allowed role
 	allowed_roles := {"EIMP_UI_UHG_IMDM_READONLY_PROD", "EIMP_UI_UHG_ORGADMIN_PROD"}
 	count(allowed_roles & user_roles_set) != 0
 }
 
-contains(permissions, elem) {
+contains(permissions, elem) if {
 	permissions[_] = elem
 }
 
 countries := {ent.country | ent := data.entitlement[_]; ent.mail == claims.email}
 
-is_offshore {
+is_offshore if {
 	not "USA" in countries
 }
