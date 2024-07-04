@@ -58,7 +58,12 @@ contains(permissions, elem) if {
 	permissions[_] = elem
 }
 
-countries := {ent.country | ent := data.entitlement[_]; ent.mail == claims.email}
+countries = {country |
+    some i
+    ent := data.entitlement[i]
+    ent.mail == claims.email
+    country := ent.country
+}
 
 is_offshore if {
 	not "USA" in countries
