@@ -1,75 +1,72 @@
-# Role-based Access Control (RBAC)
-# --------------------------------
-#
-# This example defines an RBAC model for a Pet Store API. The Pet Store API allows
-# users to look at pets, adopt them, update their stats, and so on. The policy
-# controls which users can perform actions on which resources. The policy implements
-# a classic Role-based Access Control model where users are assigned to roles and
-# roles are granted the ability to perform some action(s) on some type of resource.
-#
-# This example shows how to:
-#
-#	* Define an RBAC model in Rego that interprets role mappings represented in JSON.
-#	* Iterate/search across JSON data structures (e.g., role mappings)
-#
-# For more information see:
-#
-#	* Rego comparison to other systems: https://www.openpolicyagent.org/docs/latest/comparison-to-other-systems/
-#	* Rego Iteration: https://www.openpolicyagent.org/docs/latest/#iteration
+package com.optum.eimp.patients
 
-package app.rbac
-# import data.utils
+import future.keywords.in
+import future.keywords.if
 
-# By default, deny requests.
-default allow = false
+default deny = false
 
-# Allow admins to do anything.
-allow {
-	user_is_admin
+authorization = result {
+	result := {
+		"deny": deny,
+		"enforcement": enforcement
+	}
 }
 
-# you can ignore this rule, it's simply here to create a dependency
-# to another rego policy file, so we can demonstate how to work with
-# an explicit manifest file (force order of policy loading).
-#allow {
-#	input.matching_policy.grants
-#	input.roles
-#	utils.hasPermission(input.matching_policy.grants, input.roles)
-#}
-
-# Allow the action if the user is granted permission to perform the action.
-allow {
-	# Find permissions for the user.
-	some permission
-	user_is_granted[permission]
-
-	# Check if the permission permits the action.
-	input.action == permission.action
-	input.type == permission.type
-    
-    # unless user location is outside US
-    country := data.users[input.user]["location"]["country"]
-    country == "IN"
+deny {
+	input.resource.type = "Patients"
+	has_required_role_permission
+	is_offshore
 }
 
-# user_is_admin is true if...
-user_is_admin {
-
-	# for some `i`...
-	some i
-
-	# "admin" is the `i`-th element in the user->role mappings for the identified user.
-	data.users[input.user]["roles"][i] == "admin"
+claims := payload {
+	[_, payload, _] := io.jwt.decode(input.jwt)
 }
 
-# user_is_granted is a set of permissions for the user identified in the request.
-# The `permission` will be contained if the set `user_is_granted` for every...
-user_is_granted[permission] {
-	some i, j
+enforcement := {
+	"rowLevel": rowFilter,
+	"columnLevel": columnMasking,
+}
 
-	# `role` assigned an element of the user_roles for this user...
-	role := data.users[input.user]["roles"][i]
+# Extract the policy IDs where offshore_restricted is 1
+restricted_policy_ids := {policy.policy_id | policy := data.mysql[_]; policy.offshore_restricted == 1}
 
-	# `permission` assigned a single permission from the permissions list for 'role'...
-	permission := data.role_permissions[role][j]
+rowFilter[enforcement] {
+	deny
+	allowed_roles := {"EIMP_UI_UHG_ORGADMIN_PROD"}
+	count(allowed_roles & user_roles_set) != 0
+	enforcement := restricted_policy_ids
+}
+
+rowFilter[enforcement] {
+	deny
+	allowed_roles := {"EIMP_UI_UHG_IMDM_READONLY_PROD"}
+	count(allowed_roles & user_roles_set) != 0
+	enforcement := restricted_policy_ids
+}
+
+columnMasking[enforcement] {
+	deny
+
+	# 	not contains(grants, "viewphi")
+	enforcement := "NO_PHI"
+}
+
+user_roles_set := {x |
+	x := claims.role[_]
+}
+
+has_required_role_permission {
+	# Check allowed role
+	allowed_roles := {"EIMP_UI_UHG_IMDM_READONLY_PROD", "EIMP_UI_UHG_ORGADMIN_PROD"}
+	count(allowed_roles & user_roles_set) != 0
+}
+
+contains(permissions, elem) {
+	permissions[_] = elem
+}
+
+countries := {ent.country | ent := data.entitlement[_]; ent.mail == claims.email}
+
+is_offshore {
+	not "USA" in countries
 }
