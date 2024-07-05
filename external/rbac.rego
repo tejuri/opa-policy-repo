@@ -32,6 +32,7 @@ restricted_policy_ids := {policy.policy_id | policy := data.mysql[_]; policy.off
 
 rowFilter[enforcement] {
 	deny
+    count(countries) !=0
 	allowed_roles := {"EIMP_UI_UHG_ORGADMIN_PROD"}
 	count(allowed_roles & user_roles_set) != 0
 	enforcement := restricted_policy_ids
@@ -58,8 +59,8 @@ contains(permissions, elem) if {
 	permissions[_] = elem
 }
 
-countries := {ent.country | ent := data.entitlemet[_]; ent.mail == claims.email}
+countries := {ent.country | ent := data.entitlement[_]; ent.mail == claims.email}
 
 is_offshore if {
-	not "IND" in countries
+	not "USA" in countries
 }
