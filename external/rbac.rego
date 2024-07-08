@@ -35,7 +35,7 @@ rowFilter[enforcement] {
     count(countries) !=0
 	allowed_roles := {"EIMP_UI_UHG_ORGADMIN_PROD"}
 	count(allowed_roles & user_roles_set) != 0
-	enforcement := restricted_policy_ids
+	enforcement := restricted_policy_ids[_]
 }
 
 columnMasking[enforcement] {
