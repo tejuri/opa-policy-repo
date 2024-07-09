@@ -33,7 +33,7 @@ restricted_policy_ids := {policy.policy_id | policy := data.mysql[_]; policy.off
 rowFilter[enforcement] {
 	deny
     count(countries) !=0
-	allowed_roles := {"EIMP_UI_UHG_ORGADMIN_PROD"}
+	allowed_roles := {"AWS_EIMP_DATA_QUALITY_DASHBOARD_ADMIN_PROD"}
 	count(allowed_roles & user_roles_set) != 0
 	enforcement := restricted_policy_ids[_]
 }
@@ -51,7 +51,7 @@ user_roles_set := {x |
 
 has_required_role_permission if {
 	# Check allowed role
-	allowed_roles := {"EIMP_UI_UHG_IMDM_READONLY_PROD", "EIMP_UI_UHG_ORGADMIN_PROD"}
+	allowed_roles := {"AWS_EIMP_DATA_QUALITY_DASHBOARD_READONLY_PROD", "AWS_EIMP_DATA_QUALITY_DASHBOARD_ADMIN_PROD"}
 	count(allowed_roles & user_roles_set) != 0
 }
 
